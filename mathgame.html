@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zetamac X</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container { text-align: center; width: 100%; max-width: 960px; padding: 20px; }
+  .container .page:not(#historyPage) { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 2.5rem; margin-bottom: 8px; color: #38bdf8; }
+  .subtitle { color: #94a3b8; margin-bottom: 30px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Settings */
+  .settings { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .setting-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .setting-row:last-child { margin-bottom: 0; }
+  .setting-label { font-size: 0.95rem; color: #94a3b8; }
+  .ops-toggle { display: flex; gap: 6px; }
+  .ops-toggle button {
+    background: #334155; border: 2px solid #475569; color: #94a3b8;
+    font-size: 1.1rem; width: 44px; height: 44px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ops-toggle button.active { background: #38bdf8; border-color: #38bdf8; color: #0f172a; font-weight: 700; }
+  .ops-toggle button:hover { border-color: #38bdf8; }
+  select, .time-input {
+    background: #334155; border: 2px solid #475569; color: #e2e8f0;
+    font-size: 1rem; padding: 8px 12px; border-radius: 8px; outline: none;
+  }
+  select:focus, .time-input:focus { border-color: #38bdf8; }
+  .time-input { width: 110px; text-align: center; }
+
+  /* Presets */
+  .presets { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .presets h3 { color: #38bdf8; margin-bottom: 12px; font-size: 1rem; }
+  .preset-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .preset-chip {
+    background: #334155; border: 2px solid #475569; color: #94a3b8;
+    font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .preset-chip:hover { border-color: #38bdf8; color: #e2e8f0; }
+  .preset-chip.active { background: #38bdf8; border-color: #38bdf8; color: #0f172a; font-weight: 600; }
+  .preset-chip.weakness { border-color: #ef4444; color: #ef4444; }
+  .preset-chip.weakness:hover { border-color: #f87171; color: #f87171; }
+  .preset-chip.weakness.active { background: #ef4444; border-color: #ef4444; color: #0f172a; }
+  .preset-actions { display: flex; gap: 8px; }
+  .preset-action-btn {
+    background: transparent; border: 1px solid #475569; color: #64748b;
+    font-size: 0.75rem; padding: 4px 12px; border-radius: 6px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-action-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+  .preset-action-btn.delete:hover { border-color: #ef4444; color: #ef4444; }
+
+  /* Range config */
+  .range-config { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .range-config h3 { color: #38bdf8; margin-bottom: 16px; font-size: 1rem; }
+  .range-row {
+    display: flex; align-items: center; margin-bottom: 10px;
+  }
+  .range-row:last-child { margin-bottom: 0; }
+  .range-label { color: #94a3b8; font-size: 0.9rem; margin-right: 12px; white-space: nowrap; flex-shrink: 0; min-width: 130px; text-align: left; }
+  .range-inputs { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .range-sep { color: #64748b; font-size: 0.8rem; }
+  .range-input {
+    background: #334155; border: 2px solid #475569; color: #e2e8f0;
+    font-size: 0.95rem; padding: 6px 10px; border-radius: 8px; outline: none;
+    width: 110px; text-align: center;
+  }
+  .range-input:focus { border-color: #38bdf8; }
+  .range-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
+
+  /* Buttons */
+  .btn {
+    background: #38bdf8; color: #0f172a; border: none; font-size: 1.2rem;
+    font-weight: 700; padding: 14px 48px; border-radius: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #7dd3fc; }
+  .btn-small { font-size: 1rem; padding: 10px 28px; }
+  .btn-end {
+    background: transparent; border: 2px solid #475569; color: #94a3b8;
+    font-size: 0.85rem; padding: 8px 20px; border-radius: 8px; cursor: pointer;
+    margin-top: 20px; transition: all 0.15s;
+  }
+  .btn-end:hover { border-color: #ef4444; color: #ef4444; }
+  .btn-secondary {
+    background: #475569; color: #e2e8f0; border: none; font-size: 1rem;
+    font-weight: 600; padding: 10px 28px; border-radius: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: #64748b; }
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* Game */
+  .timer-bar {
+    background: #1e293b; border-radius: 99px; height: 12px; margin-bottom: 30px; overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%; background: #38bdf8; border-radius: 99px;
+    transition: width 0.25s linear, background 0.3s;
+  }
+  .timer-fill.warning { background: #f59e0b; }
+  .timer-fill.danger { background: #ef4444; }
+  .stats-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; }
+  .stat-val { font-size: 2rem; font-weight: 700; }
+  .stat-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+  .problem {
+    font-size: 3rem; font-weight: 700; margin-bottom: 20px;
+    min-height: 4rem; display: flex; align-items: center; justify-content: center;
+  }
+  .problem .op { color: #38bdf8; margin: 0 12px; }
+  .problem .eq { color: #64748b; margin: 0 12px; }
+  #answer {
+    background: #1e293b; border: 3px solid #475569; color: #e2e8f0;
+    font-size: 2rem; text-align: center; padding: 12px; border-radius: 12px;
+    width: 220px; outline: none; caret-color: #38bdf8;
+    -moz-appearance: textfield;
+  }
+  #answer::-webkit-outer-spin-button,
+  #answer::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #answer:focus { border-color: #38bdf8; }
+  #answer.correct { border-color: #22c55e; background: #14532d33; }
+
+  /* Cards */
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .card h3 { color: #38bdf8; margin-bottom: 16px; font-size: 1rem; }
+  .final-score { font-size: 4rem; font-weight: 800; color: #38bdf8; }
+  .final-label { color: #94a3b8; margin-bottom: 10px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .sg-item { background: #0f172a; border-radius: 8px; padding: 12px; }
+  .sg-val { font-size: 1.3rem; font-weight: 700; }
+  .sg-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+  .history { margin-top: 16px; max-height: 300px; overflow-y: auto; text-align: left; padding: 0 8px; }
+  .history-item {
+    display: flex; justify-content: space-between; padding: 6px 8px;
+    border-bottom: 1px solid #0f172a; font-size: 0.9rem; border-radius: 4px;
+  }
+
+  /* Leaderboard */
+  .lb-table { width: 100%; border-collapse: collapse; margin-top: 12px; text-align: left; }
+  .lb-table th {
+    color: #64748b; font-size: 0.75rem; text-transform: uppercase;
+    padding: 8px 6px; border-bottom: 2px solid #334155;
+  }
+  .lb-table td { padding: 10px 6px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+  .lb-table tr.gold td { color: #fbbf24; }
+  .lb-table tr.silver td { color: #94a3b8; }
+  .lb-table tr.bronze td { color: #b45309; }
+  .lb-rank { font-weight: 700; width: 36px; }
+  .lb-score { font-weight: 700; color: #38bdf8; }
+  .lb-empty { color: #475569; padding: 30px; }
+  .clear-btn {
+    background: transparent; border: 1px solid #475569; color: #64748b;
+    font-size: 0.75rem; padding: 4px 12px; border-radius: 6px; cursor: pointer;
+    margin-top: 12px; transition: all 0.15s;
+  }
+  .clear-btn:hover { border-color: #ef4444; color: #ef4444; }
+  .section-label { color: #94a3b8; font-size: 0.85rem; margin-bottom: 8px; text-align: left; }
+
+  /* History graph */
+  .graph-container { position: relative; width: 100%; height: 200px; margin: 16px 0; }
+  .graph-canvas { width: 100%; height: 100%; }
+  .history-table { width: 100%; border-collapse: collapse; margin-top: 16px; text-align: left; }
+  .history-table th {
+    color: #64748b; font-size: 0.75rem; text-transform: uppercase;
+    padding: 8px 6px; border-bottom: 2px solid #334155;
+  }
+  .history-table td { padding: 8px 6px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: #94a3b8; }
+  .history-table td.ht-score { color: #38bdf8; font-weight: 600; }
+  .hist-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; }
+  .hist-col { min-width: 0; }
+  .hist-col-scroll { max-height: 400px; overflow-y: auto; }
+  @media (max-width: 700px) { .hist-columns { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- MENU PAGE -->
+  <div class="page active" id="menuPage">
+    <h1>Zetamac X</h1>
+    <p class="subtitle">Data-driven mental math improvement</p>
+
+    <div class="presets">
+      <h3>Presets</h3>
+      <div class="preset-list" id="presetList"></div>
+      <div class="preset-actions">
+        <button class="preset-action-btn" onclick="saveCurrentAsPreset()">Save Current</button>
+        <button class="preset-action-btn delete" id="deletePresetBtn" onclick="deleteActivePreset()" style="display:none">Delete Preset</button>
+      </div>
+    </div>
+
+    <div class="settings">
+      <div class="setting-row">
+        <span class="setting-label">Operations</span>
+        <div class="ops-toggle" id="opsToggle">
+          <button data-op="+" class="active">+</button>
+          <button data-op="−" class="active">−</button>
+          <button data-op="×" class="active">×</button>
+          <button data-op="÷" class="active">÷</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Time (seconds)</span>
+        <input type="number" class="time-input" id="timeInput" value="120" min="10" max="600" step="10">
+      </div>
+    </div>
+
+    <div class="range-config">
+      <h3>Number Ranges</h3>
+      <div class="range-row">
+        <span class="range-label">Add/Subtract</span>
+        <div class="range-inputs">
+          <input type="number" class="range-input" id="addMin" value="2">
+          <span class="range-sep">to</span>
+          <input type="number" class="range-input" id="addMax" value="100">
+        </div>
+      </div>
+      <hr class="range-divider">
+      <div class="range-row">
+        <span class="range-label">Multiply/Divide A</span>
+        <div class="range-inputs">
+          <input type="number" class="range-input" id="mulAMin" value="2">
+          <span class="range-sep">to</span>
+          <input type="number" class="range-input" id="mulAMax" value="12">
+        </div>
+      </div>
+      <div class="range-row">
+        <span class="range-label">Multiply/Divide B</span>
+        <div class="range-inputs">
+          <input type="number" class="range-input" id="mulBMin" value="2">
+          <span class="range-sep">to</span>
+          <input type="number" class="range-input" id="mulBMax" value="100">
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="startGame()">Start</button>
+      <button class="btn-secondary" onclick="showPage('leaderboardPage'); renderLeaderboard();">Leaderboard</button>
+      <button class="btn-secondary" onclick="showPage('historyPage'); renderHistory();">History</button>
+    </div>
+  </div>
+
+  <!-- GAME PAGE -->
+  <div class="page" id="gamePage">
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+    <div class="stats-row">
+      <div><div class="stat-val" id="scoreDisp">0</div><div class="stat-label">Score</div></div>
+      <div><div class="stat-val" id="timeDisp">120</div><div class="stat-label">Time</div></div>
+      <div><div class="stat-val" id="predictedDisp" style="color:#64748b">—</div><div class="stat-label">Predicted</div></div>
+    </div>
+    <div class="problem" id="problem"></div>
+    <input type="number" id="answer" autocomplete="off" inputmode="numeric">
+    <br>
+    <button class="btn-end" onclick="endGame()">End Session</button>
+  </div>
+
+  <!-- RESULTS PAGE -->
+  <div class="page" id="resultsPage">
+    <div class="card">
+      <div class="final-score" id="finalScore">0</div>
+      <div class="final-label">problems solved</div>
+
+      <p class="section-label">This Session</p>
+      <div class="stats-grid">
+        <div class="sg-item"><div class="sg-val" id="rsScore">0</div><div class="sg-label">Score</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsAvg">0</div><div class="sg-label">Avg (s)</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsFastest">0</div><div class="sg-label">Fastest (s)</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsStreak">0</div><div class="sg-label">Best Streak</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsTime">0</div><div class="sg-label">Time Used</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsRate">0</div><div class="sg-label">Per Min</div></div>
+        <div class="sg-item"><div class="sg-val" id="rsStdDev">0</div><div class="sg-label">Std Dev (s)</div></div>
+      </div>
+
+      <div style="margin-top:20px">
+        <p class="section-label">All Time</p>
+        <div class="stats-grid" id="alltimeStats"></div>
+      </div>
+
+      <div class="history" id="history"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-small" onclick="startGame()">Play Again</button>
+      <button class="btn-secondary btn-small" onclick="showPage('leaderboardPage'); renderLeaderboard();">Leaderboard</button>
+      <button class="btn-secondary btn-small" onclick="showPage('historyPage'); renderHistory();">History</button>
+      <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Settings</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div class="page" id="leaderboardPage">
+    <h1 style="font-size:1.8rem; margin-bottom:20px;">Leaderboard</h1>
+    <div class="card" id="leaderboardCard"></div>
+    <div class="btn-row">
+      <button class="btn btn-small" onclick="startGame()">Play</button>
+      <button class="btn-secondary btn-small" onclick="showPage('historyPage'); renderHistory();">History</button>
+      <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="historyPage">
+    <h1 style="font-size:1.8rem; margin-bottom:20px;">History</h1>
+    <div class="card" id="historyCard"></div>
+    <div class="btn-row">
+      <button class="btn btn-small" onclick="startGame()">Play</button>
+      <button class="btn-secondary btn-small" onclick="showPage('leaderboardPage'); renderLeaderboard();">Leaderboard</button>
+      <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let tickInterval, totalTime, timeLeft;
+let score, currentAnswer, currentA, currentB, currentOp, streak, bestStreak;
+let gameHistory, problemStart, times;
+const ops = { '+': true, '−': true, '×': true, '÷': true };
+let activePresetName = 'Default';
+
+const DEFAULT_PRESET = {
+  ops: { '+': true, '−': true, '×': true, '÷': true },
+  time: 120,
+  addMin: 2, addMax: 100,
+  subMin: 2, subMax: 100,
+  mulAMin: 2, mulAMax: 12,
+  mulBMin: 2, mulBMax: 100
+};
+
+// --- Page navigation ---
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// --- LocalStorage (per-preset) ---
+function getAllHistories() {
+  try { return JSON.parse(localStorage.getItem('speedmath_histories') || '{}'); } catch { return {}; }
+}
+function getScoreHistory(preset) {
+  return getAllHistories()[preset || activePresetName] || [];
+}
+function saveScore(entry) {
+  const all = getAllHistories();
+  if (!all[activePresetName]) all[activePresetName] = [];
+  all[activePresetName].push(entry);
+  localStorage.setItem('speedmath_histories', JSON.stringify(all));
+}
+function clearPresetHistory(preset) {
+  const all = getAllHistories();
+  delete all[preset];
+  localStorage.setItem('speedmath_histories', JSON.stringify(all));
+  renderLeaderboard();
+}
+if (localStorage.getItem('speedmath_history')) {
+  localStorage.removeItem('speedmath_history');
+}
+// Migrate old per-preset question times to new Default-only store
+if (localStorage.getItem('speedmath_qtimes') && !localStorage.getItem('speedmath_qtimes_default')) {
+  try {
+    const old = JSON.parse(localStorage.getItem('speedmath_qtimes'));
+    // Merge all preset data into one flat store
+    const merged = {};
+    Object.values(old).forEach(presetData => {
+      Object.entries(presetData).forEach(([key, val]) => {
+        if (!merged[key]) merged[key] = { total: 0, count: 0 };
+        merged[key].total += val.total;
+        merged[key].count += val.count;
+      });
+    });
+    localStorage.setItem('speedmath_qtimes_default', JSON.stringify(merged));
+  } catch {}
+  localStorage.removeItem('speedmath_qtimes');
+}
+
+// --- Question time tracking (Default only) ---
+function getQuestionTimes() {
+  try { return JSON.parse(localStorage.getItem('speedmath_qtimes_default') || '{}'); } catch { return {}; }
+}
+function fitsDefaultRange(a, b, op) {
+  const d = DEFAULT_PRESET;
+  switch (op) {
+    case '+':
+      return a >= d.addMin && a <= d.addMax && b >= d.addMin && b <= d.addMax;
+    case '−':
+      // Subtraction uses add range; a >= b always (enforced by generator)
+      return a >= d.addMin && a <= d.addMax && b >= d.addMin && b <= d.addMax;
+    case '×': {
+      // Either (a in A, b in B) or (a in B, b in A) since we normalize
+      const aInA = a >= d.mulAMin && a <= d.mulAMax;
+      const aInB = a >= d.mulBMin && a <= d.mulBMax;
+      const bInA = b >= d.mulAMin && b <= d.mulAMax;
+      const bInB = b >= d.mulBMin && b <= d.mulBMax;
+      return (aInA && bInB) || (aInB && bInA);
+    }
+    case '÷': {
+      // Division: a ÷ b = answer, generated as b from mulA range, answer from mulB range
+      // So b should fit mulA and (a/b) should fit mulB
+      if (a % b !== 0) return false;
+      const answer = a / b;
+      const bInA = b >= d.mulAMin && b <= d.mulAMax;
+      const ansInB = answer >= d.mulBMin && answer <= d.mulBMax;
+      const bInB = b >= d.mulBMin && b <= d.mulBMax;
+      const ansInA = answer >= d.mulAMin && answer <= d.mulAMax;
+      return (bInA && ansInB) || (bInB && ansInA);
+    }
+  }
+  return false;
+}
+function saveQuestionTime(key, time, a, b, op) {
+  if (!fitsDefaultRange(a, b, op)) return;
+  const data = getQuestionTimes();
+  if (!data[key]) data[key] = { total: 0, count: 0 };
+  data[key].total += time;
+  data[key].count += 1;
+  localStorage.setItem('speedmath_qtimes_default', JSON.stringify(data));
+}
+function normalizeQuestionKey(a, b, op) {
+  if (op === '+' || op === '×') {
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return `${lo}${op}${hi}`;
+  }
+  return `${a}${op}${b}`;
+}
+
+// --- Presets ---
+function getPresets() {
+  try {
+    const p = JSON.parse(localStorage.getItem('speedmath_presets') || 'null');
+    if (p && p.Default) return p;
+  } catch {}
+  return {
+    Default: { ...DEFAULT_PRESET },
+    'Long Sum': {
+      ops: { '+': true, '−': true, '×': false, '÷': false },
+      time: 120,
+      addMin: 100, addMax: 999,
+      subMin: 100, subMax: 999,
+      mulAMin: 2, mulAMax: 12,
+      mulBMin: 2, mulBMax: 100
+    },
+    'Weakness Targeting': {
+      ops: { '+': true, '−': true, '×': true, '÷': true },
+      time: 120,
+      weakness: true
+    }
+  };
+}
+function savePresets(presets) {
+  localStorage.setItem('speedmath_presets', JSON.stringify(presets));
+}
+
+function getCurrentSettings() {
+  return {
+    ops: { ...ops },
+    time: parseInt(document.getElementById('timeInput').value) || 120,
+    addMin: parseInt(document.getElementById('addMin').value) || 2,
+    addMax: parseInt(document.getElementById('addMax').value) || 100,
+    mulAMin: parseInt(document.getElementById('mulAMin').value) || 2,
+    mulAMax: parseInt(document.getElementById('mulAMax').value) || 12,
+    mulBMin: parseInt(document.getElementById('mulBMin').value) || 2,
+    mulBMax: parseInt(document.getElementById('mulBMax').value) || 100,
+  };
+}
+
+function applyPreset(preset) {
+  Object.keys(ops).forEach(k => ops[k] = !!(preset.ops && preset.ops[k]));
+  document.querySelectorAll('#opsToggle button').forEach(btn => {
+    btn.classList.toggle('active', !!ops[btn.dataset.op]);
+  });
+  document.getElementById('timeInput').value = preset.time || 120;
+  document.getElementById('addMin').value = preset.addMin ?? 2;
+  document.getElementById('addMax').value = preset.addMax ?? 100;
+  document.getElementById('mulAMin').value = preset.mulAMin ?? 2;
+  document.getElementById('mulAMax').value = preset.mulAMax ?? 12;
+  document.getElementById('mulBMin').value = preset.mulBMin ?? 2;
+  document.getElementById('mulBMax').value = preset.mulBMax ?? 100;
+}
+
+function renderPresets() {
+  const presets = getPresets();
+  const list = document.getElementById('presetList');
+  list.innerHTML = '';
+  Object.keys(presets).forEach(name => {
+    const chip = document.createElement('span');
+    chip.className = 'preset-chip' + (name === activePresetName ? ' active' : '') + (name === 'Weakness Targeting' ? ' weakness' : '');
+    chip.textContent = name;
+    chip.onclick = () => {
+      activePresetName = name;
+      applyPreset(presets[name]);
+      renderPresets();
+    };
+    list.appendChild(chip);
+  });
+  document.getElementById('deletePresetBtn').style.display =
+    !BUILTIN_PRESETS.includes(activePresetName) ? '' : 'none';
+}
+
+function saveCurrentAsPreset() {
+  const name = prompt('Preset name:');
+  if (!name || !name.trim()) return;
+  const presets = getPresets();
+  presets[name.trim()] = getCurrentSettings();
+  savePresets(presets);
+  activePresetName = name.trim();
+  renderPresets();
+}
+
+const BUILTIN_PRESETS = ['Default', 'Long Sum', 'Weakness Targeting'];
+
+function deleteActivePreset() {
+  if (BUILTIN_PRESETS.includes(activePresetName)) return;
+  const presets = getPresets();
+  delete presets[activePresetName];
+  savePresets(presets);
+  clearPresetHistory(activePresetName);
+  activePresetName = 'Default';
+  applyPreset(presets.Default);
+  renderPresets();
+}
+
+// --- Stats helpers ---
+function calcStdDev(arr) {
+  if (arr.length < 2) return 0;
+  const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+  const variance = arr.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (arr.length - 1);
+  return Math.sqrt(variance);
+}
+
+function timeToHeatColor(time, mean, stdDev) {
+  // Map time to standard deviations from mean
+  // Faster (below mean) = green, slower (above mean) = red
+  if (stdDev === 0) return '#22c55e';
+  const z = (time - mean) / stdDev;
+  // Clamp z to [-2, 2] for color mapping
+  const clamped = Math.max(-2, Math.min(2, z));
+  // -2 = bright green, 0 = yellow, +2 = bright red
+  const t = (clamped + 2) / 4; // 0..1
+  const r = Math.round(t < 0.5 ? t * 2 * 255 : 255);
+  const g = Math.round(t < 0.5 ? 255 : (1 - t) * 2 * 255);
+  return `rgb(${r},${g},60)`;
+}
+
+// --- All-time stats (inline grid) ---
+function renderAllTimeInline(targetId) {
+  const el = document.getElementById(targetId);
+  const h = getScoreHistory(activePresetName);
+  if (!h.length) {
+    el.innerHTML = '<div class="sg-item" style="grid-column:1/-1"><div class="sg-val" style="color:#475569">No history yet</div></div>';
+    return;
+  }
+  const scores = h.map(e => e.score);
+  const best = Math.max(...scores);
+  const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+  const totalSolved = scores.reduce((a, b) => a + b, 0);
+  const bestStreaks = h.map(e => e.bestStreak || 0);
+  const allBestStreak = Math.max(...bestStreaks);
+  const allAvgTimes = h.filter(e => e.avgTime && e.avgTime !== '—').map(e => parseFloat(e.avgTime));
+  const overallAvg = allAvgTimes.length ? (allAvgTimes.reduce((a, b) => a + b, 0) / allAvgTimes.length).toFixed(2) : '—';
+  const allStdDevs = h.filter(e => e.stdDev !== undefined && e.stdDev !== '—').map(e => parseFloat(e.stdDev));
+  const overallStdDev = allStdDevs.length ? (allStdDevs.reduce((a, b) => a + b, 0) / allStdDevs.length).toFixed(2) : '—';
+
+  el.innerHTML = `
+    <div class="sg-item"><div class="sg-val">${h.length}</div><div class="sg-label">Games</div></div>
+    <div class="sg-item"><div class="sg-val" style="color:#fbbf24">${best}</div><div class="sg-label">Best Score</div></div>
+    <div class="sg-item"><div class="sg-val">${avg}</div><div class="sg-label">Avg Score</div></div>
+    <div class="sg-item"><div class="sg-val">${totalSolved}</div><div class="sg-label">Total Solved</div></div>
+    <div class="sg-item"><div class="sg-val">${allBestStreak}</div><div class="sg-label">Best Streak</div></div>
+    <div class="sg-item"><div class="sg-val">${overallAvg}</div><div class="sg-label">Avg Time</div></div>
+    <div class="sg-item"><div class="sg-val">${overallStdDev}</div><div class="sg-label">Avg Std Dev</div></div>
+  `;
+}
+
+// --- Leaderboard ---
+let lbActivePreset = 'Default';
+
+function renderLeaderboard() {
+  const el = document.getElementById('leaderboardCard');
+  const presets = getPresets();
+  const presetNames = Object.keys(presets);
+  lbActivePreset = presetNames.includes(activePresetName) ? activePresetName : presetNames[0];
+
+  const tabs = presetNames.map(name =>
+    `<span class="preset-chip ${name === lbActivePreset ? 'active' : ''} ${name === 'Weakness Targeting' ? 'weakness' : ''}" onclick="lbActivePreset='${name.replace(/'/g, "\\'")}'; renderLeaderboardTable();">${name}</span>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="preset-list" style="margin-bottom:16px">${tabs}</div>
+    <div id="lbTableContainer"></div>
+  `;
+  renderLeaderboardTable();
+}
+
+function renderLeaderboardTable() {
+  const container = document.getElementById('lbTableContainer');
+  const h = getScoreHistory(lbActivePreset);
+
+  document.querySelectorAll('#leaderboardCard .preset-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.textContent === lbActivePreset);
+  });
+
+  if (!h.length) {
+    container.innerHTML = `<div class="lb-empty">No games played with "${lbActivePreset}" preset yet.</div>`;
+    return;
+  }
+
+  const sorted = h.slice().sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aRate = parseFloat(a.perMin) || 0;
+    const bRate = parseFloat(b.perMin) || 0;
+    return bRate - aRate;
+  });
+
+  const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+
+  container.innerHTML = `
+    <table class="lb-table">
+      <thead>
+        <tr><th class="lb-rank">#</th><th>Date</th><th>Score</th><th>Time</th><th>Per Min</th><th>Per Sec</th></tr>
+      </thead>
+      <tbody>
+        ${sorted.map((e, i) => `
+          <tr class="${rankClass(i)}">
+            <td class="lb-rank">${i + 1}</td>
+            <td>${e.date}</td>
+            <td class="lb-score">${e.score}</td>
+            <td>${e.timeUsed || e.duration}s</td>
+            <td>${e.perMin || '—'}</td>
+            <td>${e.timeUsed ? (e.score / e.timeUsed).toFixed(2) : '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// --- Op toggles ---
+document.querySelectorAll('#opsToggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('active');
+    ops[btn.dataset.op] = btn.classList.contains('active');
+    if (!Object.values(ops).some(v => v)) {
+      btn.classList.add('active');
+      ops[btn.dataset.op] = true;
+    }
+  });
+});
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRange(id) {
+  const min = parseInt(document.getElementById(id + 'Min').value) || 2;
+  const max = parseInt(document.getElementById(id + 'Max').value) || 12;
+  return [Math.min(min, max), Math.max(min, max)];
+}
+
+// --- Weakness targeting ---
+let weaknessPool = null;
+
+function buildWeaknessPool() {
+  const data = getQuestionTimes();
+  const entries = Object.entries(data)
+    .map(([key, v]) => ({ key, avg: v.total / v.count, count: v.count }))
+    .sort((a, b) => b.avg - a.avg)
+    .slice(0, 30);
+  if (!entries.length) return null;
+  return entries.map(e => parseQuestionKey(e.key)).filter(Boolean);
+}
+
+function parseQuestionKey(key) {
+  // Keys look like: "3+5", "12−7", "4×8", "36÷6"
+  const opMatch = key.match(/([+×÷−])/);
+  if (!opMatch) return null;
+  const op = opMatch[1];
+  const parts = key.split(op);
+  if (parts.length !== 2) return null;
+  const a = parseInt(parts[0]), b = parseInt(parts[1]);
+  if (isNaN(a) || isNaN(b)) return null;
+  let answer;
+  switch (op) {
+    case '+': answer = a + b; break;
+    case '−': answer = a - b; break;
+    case '×': answer = a * b; break;
+    case '÷': answer = a / b; break;
+  }
+  return { a, b, op, answer };
+}
+
+function generateProblem() {
+  // If weakness targeting is active, pick from pool
+  if (weaknessPool && weaknessPool.length) {
+    const p = weaknessPool[Math.floor(Math.random() * weaknessPool.length)];
+    return { ...p };
+  }
+
+  const active = Object.keys(ops).filter(k => ops[k]);
+  const op = active[Math.floor(Math.random() * active.length)];
+  let a, b, answer;
+
+  switch (op) {
+    case '+': {
+      const [min, max] = getRange('add');
+      a = randInt(min, max); b = randInt(min, max);
+      answer = a + b;
+      break;
+    }
+    case '−': {
+      const [min, max] = getRange('add');
+      a = randInt(min, max); b = randInt(min, max);
+      if (a < b) [a, b] = [b, a];
+      answer = a - b;
+      break;
+    }
+    case '×': {
+      const [minA, maxA] = getRange('mulA');
+      const [minB, maxB] = getRange('mulB');
+      a = randInt(minA, maxA); b = randInt(minB, maxB);
+      answer = a * b;
+      break;
+    }
+    case '÷': {
+      const [minA, maxA] = getRange('mulA');
+      const [minB, maxB] = getRange('mulB');
+      b = randInt(minA, maxA);
+      answer = randInt(minB, maxB);
+      a = b * answer;
+      break;
+    }
+  }
+  return { a, b, op, answer };
+}
+
+function showProblem() {
+  const p = generateProblem();
+  currentAnswer = p.answer;
+  currentA = p.a;
+  currentB = p.b;
+  currentOp = p.op;
+  document.getElementById('problem').innerHTML =
+    `${p.a} <span class="op">${p.op}</span> ${p.b} <span class="eq">=</span> ?`;
+  problemStart = Date.now();
+  const inp = document.getElementById('answer');
+  inp.value = '';
+  inp.className = '';
+  inp.focus();
+}
+
+function updateTimer() {
+  timeLeft -= 0.25;
+  if (timeLeft <= 0) { timeLeft = 0; endGame(); return; }
+  document.getElementById('timeDisp').textContent = Math.ceil(timeLeft);
+  const elapsed = totalTime - timeLeft;
+  if (score > 0 && elapsed > 0) {
+    const rate = score / elapsed;
+    document.getElementById('predictedDisp').textContent = Math.round(rate * totalTime);
+  }
+  const pct = (timeLeft / totalTime) * 100;
+  const fill = document.getElementById('timerFill');
+  fill.style.width = pct + '%';
+  fill.className = 'timer-fill' + (pct < 15 ? ' danger' : pct < 33 ? ' warning' : '');
+}
+
+function startGame() {
+  const presets = getPresets();
+  const preset = presets[activePresetName];
+  weaknessPool = (preset && preset.weakness) ? buildWeaknessPool() : null;
+
+  totalTime = parseInt(document.getElementById('timeInput').value) || 120;
+  timeLeft = totalTime;
+  score = 0; streak = 0; bestStreak = 0;
+  gameHistory = []; times = [];
+
+  showPage('gamePage');
+  document.getElementById('scoreDisp').textContent = '0';
+  document.getElementById('timeDisp').textContent = totalTime;
+  document.getElementById('timerFill').style.width = '100%';
+  document.getElementById('timerFill').className = 'timer-fill';
+  document.getElementById('predictedDisp').textContent = '—';
+
+  showProblem();
+  clearInterval(tickInterval);
+  tickInterval = setInterval(updateTimer, 250);
+}
+
+function endGame() {
+  clearInterval(tickInterval);
+  showPage('resultsPage');
+
+  const timeUsed = totalTime - timeLeft;
+  const avgTime = times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2) : '—';
+  const fastest = times.length ? Math.min(...times).toFixed(2) : '—';
+  const perMin = timeUsed > 0 ? (score / (timeUsed / 60)).toFixed(1) : '—';
+  const stdDev = times.length >= 2 ? calcStdDev(times).toFixed(2) : '—';
+
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('rsScore').textContent = score;
+  document.getElementById('rsAvg').textContent = avgTime;
+  document.getElementById('rsFastest').textContent = fastest;
+  document.getElementById('rsStreak').textContent = bestStreak;
+  document.getElementById('rsTime').textContent = Math.round(timeUsed) + 's';
+  document.getElementById('rsRate').textContent = perMin;
+  document.getElementById('rsStdDev').textContent = stdDev;
+
+  // Render history with heatmap coloring
+  const mean = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+  const sd = times.length >= 2 ? calcStdDev(times) : 0;
+  const hEl = document.getElementById('history');
+  hEl.innerHTML = gameHistory.map(h => {
+    const t = parseFloat(h.time);
+    const color = timeToHeatColor(t, mean, sd);
+    return `<div class="history-item" style="color:${color}">
+      <span>${h.problem}</span>
+      <span>${h.time}s</span>
+    </div>`;
+  }).join('');
+
+  // Save question times
+  gameHistory.forEach(h => {
+    saveQuestionTime(h.qkey, parseFloat(h.time), h.a, h.b, h.op);
+  });
+
+  // Save to localStorage (per-preset)
+  const now = new Date();
+  const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  saveScore({
+    date: dateStr,
+    score: score,
+    duration: totalTime,
+    timeUsed: Math.round(timeUsed),
+    avgTime: avgTime,
+    fastest: fastest,
+    bestStreak: bestStreak,
+    perMin: perMin,
+    stdDev: stdDev
+  });
+
+  renderAllTimeInline('alltimeStats');
+}
+
+// --- Input handling ---
+document.getElementById('answer').addEventListener('input', function () {
+  if (timeLeft <= 0) return;
+  const val = this.value.trim();
+  if (val === '' || val === '-') return;
+  const num = parseInt(val);
+  if (isNaN(num)) return;
+
+  if (num === currentAnswer) {
+    const elapsed = ((Date.now() - problemStart) / 1000).toFixed(2);
+    const prob = document.getElementById('problem').textContent.replace('?', currentAnswer);
+    const qkey = normalizeQuestionKey(currentA, currentB, currentOp);
+    score++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    times.push(parseFloat(elapsed));
+    gameHistory.push({ problem: prob, time: elapsed, qkey: qkey, a: currentA, b: currentB, op: currentOp });
+    document.getElementById('scoreDisp').textContent = score;
+    this.className = 'correct';
+    showProblem();
+  }
+});
+
+document.getElementById('answer').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') e.preventDefault();
+});
+
+// --- History page ---
+let histActivePreset = 'Default';
+
+function renderHistory() {
+  const el = document.getElementById('historyCard');
+  const presets = getPresets();
+  const presetNames = Object.keys(presets);
+  histActivePreset = presetNames.includes(activePresetName) ? activePresetName : presetNames[0];
+
+  const tabs = presetNames.map(name =>
+    `<span class="preset-chip ${name === histActivePreset ? 'active' : ''} ${name === 'Weakness Targeting' ? 'weakness' : ''}" onclick="histActivePreset='${name.replace(/'/g, "\\'")}'; renderHistoryContent();">${name}</span>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="preset-list" style="margin-bottom:16px">${tabs}</div>
+    <div id="histContentContainer"></div>
+  `;
+  renderHistoryContent();
+}
+
+function renderHistoryContent() {
+  const container = document.getElementById('histContentContainer');
+  const h = getScoreHistory(histActivePreset);
+
+  document.querySelectorAll('#historyCard .preset-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.textContent === histActivePreset);
+  });
+
+  if (!h.length) {
+    container.innerHTML = `<div class="lb-empty">No games played with "${histActivePreset}" preset yet.</div>`;
+    return;
+  }
+
+  // Question averages
+  const presetQTimes = getQuestionTimes();
+  const qEntries = Object.entries(presetQTimes)
+    .map(([key, v]) => ({ key, avg: (v.total / v.count).toFixed(2), count: v.count }))
+    .sort((a, b) => b.avg - a.avg); // slowest first
+
+  const qTimesHTML = qEntries.length ? `
+      <p class="section-label">Avg Time Per Question (slowest first)</p>
+      <div class="hist-col-scroll" style="text-align:left;">
+        <table class="history-table" style="margin-top:0">
+          <thead><tr><th>Question</th><th>Answer</th><th>Avg (s)</th><th>Std Devs</th><th>Seen</th></tr></thead>
+          <tbody>
+            ${(() => {
+              const allAvgs = qEntries.map(q => parseFloat(q.avg));
+              const qMean = allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length;
+              const qSd = calcStdDev(allAvgs);
+              return qEntries.map(e => {
+                const avgF = parseFloat(e.avg);
+                const color = timeToHeatColor(avgF, qMean, qSd);
+                const z = qSd > 0 ? ((avgF - qMean) / qSd).toFixed(2) : '0.00';
+                const zPrefix = parseFloat(z) > 0 ? '+' : '';
+                const parsed = parseQuestionKey(e.key);
+                const ans = parsed ? parsed.answer : '—';
+                return `<tr>
+                  <td style="color:${color}">${e.key.replace(/×/g, ' × ').replace(/÷/g, ' ÷ ').replace(/\+/g, ' + ').replace(/−/g, ' − ')}</td>
+                  <td style="color:${color}">${ans}</td>
+                  <td style="color:${color}">${e.avg}</td>
+                  <td style="color:${color}">${zPrefix}${z}\u03c3</td>
+                  <td>${e.count}</td>
+                </tr>`;
+              }).join('');
+            })()}
+          </tbody>
+        </table>
+      </div>
+  ` : '';
+
+  container.innerHTML = `
+    <div class="graph-container"><canvas class="graph-canvas" id="scoreGraph"></canvas></div>
+    <div class="hist-columns">
+      <div class="hist-col">
+        <p class="section-label">Session History</p>
+        <div class="hist-col-scroll">
+          <table class="history-table" style="margin-top:0">
+            <thead>
+              <tr><th>#</th><th>Date</th><th>Score</th><th>Time</th><th>Per Min</th><th>Avg (s)</th><th>Std Dev</th></tr>
+            </thead>
+            <tbody>
+              ${h.slice().reverse().map((e, i) => `
+                <tr>
+                  <td>${h.length - i}</td>
+                  <td>${e.date}</td>
+                  <td class="ht-score">${e.score}</td>
+                  <td>${e.timeUsed || e.duration}s</td>
+                  <td>${e.perMin || '—'}</td>
+                  <td>${e.avgTime || '—'}</td>
+                  <td>${e.stdDev || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="hist-col">
+        ${qTimesHTML || '<p class="section-label" style="color:#475569">No question data yet</p>'}
+      </div>
+    </div>
+  `;
+
+  drawGraph(h);
+}
+
+function drawGraph(data) {
+  const canvas = document.getElementById('scoreGraph');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width;
+  const H = rect.height;
+
+  const scores = data.map(e => e.score);
+  const maxScore = Math.max(...scores, 1);
+  const minScore = Math.min(...scores, 0);
+  const range = maxScore - minScore || 1;
+  const pad = { top: 24, right: 16, bottom: 28, left: 40 };
+  const gW = W - pad.left - pad.right;
+  const gH = H - pad.top - pad.bottom;
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, W, H);
+
+  const gridLines = 4;
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.fillStyle = '#475569';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= gridLines; i++) {
+    const y = pad.top + (gH / gridLines) * i;
+    const val = Math.round(maxScore - (range / gridLines) * i);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(val, pad.left - 6, y + 4);
+  }
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#475569';
+  const labelCount = Math.min(scores.length, 6);
+  for (let i = 0; i < labelCount; i++) {
+    const idx = Math.round((scores.length - 1) * i / (labelCount - 1 || 1));
+    const x = pad.left + (gW / (scores.length - 1 || 1)) * idx;
+    ctx.fillText('#' + (idx + 1), x, H - 6);
+  }
+
+  if (scores.length === 1) {
+    const x = pad.left + gW / 2;
+    const y = pad.top + gH / 2;
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  const points = scores.map((s, i) => ({
+    x: pad.left + (gW / (scores.length - 1)) * i,
+    y: pad.top + gH - ((s - minScore) / range) * gH
+  }));
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.lineTo(points[points.length - 1].x, pad.top + gH);
+  ctx.lineTo(points[0].x, pad.top + gH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + gH);
+  grad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+  grad.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  ctx.fillStyle = '#38bdf8';
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (scores.length >= 3) {
+    const n = scores.length;
+    const sumX = scores.reduce((a, _, i) => a + i, 0);
+    const sumY = scores.reduce((a, s) => a + s, 0);
+    const sumXY = scores.reduce((a, s, i) => a + i * s, 0);
+    const sumX2 = scores.reduce((a, _, i) => a + i * i, 0);
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    const y0 = pad.top + gH - ((intercept - minScore) / range) * gH;
+    const y1 = pad.top + gH - ((slope * (n - 1) + intercept - minScore) / range) * gH;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, y0);
+    ctx.lineTo(points[points.length - 1].x, y1);
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// --- Init ---
+renderPresets();
+</script>
+</body>
+</html>
