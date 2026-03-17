@@ -172,6 +172,70 @@
   .clear-btn:hover { border-color: #ef4444; color: #ef4444; }
   .section-label { color: #94a3b8; font-size: 0.85rem; margin-bottom: 8px; text-align: left; }
 
+  /* History tabs */
+  .hist-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+  .hist-tab {
+    flex: 1; padding: 10px; background: #0f172a; border: 2px solid #334155;
+    color: #94a3b8; font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
+    text-align: center; font-weight: 500;
+  }
+  .hist-tab:first-child { border-radius: 8px 0 0 8px; }
+  .hist-tab:last-child { border-radius: 0 8px 8px 0; }
+  .hist-tab.active { background: #38bdf8; border-color: #38bdf8; color: #0f172a; font-weight: 700; }
+  .hist-tab:hover:not(.active) { border-color: #38bdf8; color: #e2e8f0; }
+
+  /* Heatmap */
+  .heatmap-section { margin-bottom: 24px; }
+  .heatmap-section h3 { color: #94a3b8; font-size: 0.9rem; margin-bottom: 8px; }
+  .heatmap-wrap { overflow-x: auto; }
+  .heatmap-grid { border-collapse: collapse; }
+  .heatmap-grid th {
+    color: #64748b; font-size: 0.7rem; padding: 4px 2px; text-align: center;
+    min-width: 32px; font-weight: 600; position: sticky; top: 0; background: #1e293b;
+  }
+  .heatmap-grid th.row-header { position: sticky; left: 0; background: #1e293b; z-index: 1; }
+  .heatmap-grid td {
+    width: 32px; height: 32px; text-align: center; font-size: 0.65rem;
+    font-weight: 600; border: 1px solid #0f172a; border-radius: 3px;
+    cursor: default; position: relative;
+  }
+  .heatmap-grid td.empty { background: #1e293b; }
+  .heatmap-grid td.has-data:hover { outline: 2px solid #e2e8f0; outline-offset: -1px; z-index: 2; }
+  .heatmap-legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.75rem; color: #64748b; }
+  .heatmap-legend-bar {
+    width: 120px; height: 12px; border-radius: 4px;
+    background: linear-gradient(to right, #22d3ee, #334155, #e879f9);
+  }
+  .heatmap-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .heatmap-half { min-width: 0; }
+  @media (max-width: 900px) { .heatmap-split { grid-template-columns: 1fr; } }
+  .heatmap-stats { color: #64748b; font-size: 0.8rem; margin-bottom: 12px; }
+
+  /* Binary switch */
+  .bin-switch { display: flex; align-items: center; gap: 8px; }
+  .bin-switch-label { font-size: 0.75rem; color: #475569; transition: color 0.15s; cursor: pointer; }
+  .bin-switch-label.active { color: #e2e8f0; font-weight: 600; }
+  .bin-switch-track {
+    width: 36px; height: 20px; background: #334155; border-radius: 10px;
+    position: relative; cursor: pointer; transition: background 0.15s;
+  }
+  .bin-switch-track.on { background: #38bdf8; }
+  .bin-switch-thumb {
+    width: 16px; height: 16px; background: #e2e8f0; border-radius: 50%;
+    position: absolute; top: 2px; left: 2px; transition: left 0.15s;
+  }
+  .bin-switch-track.on .bin-switch-thumb { left: 18px; }
+
+  /* Period stats */
+  .period-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .period-stats-col { background: #1e293b; border-radius: 10px; padding: 12px; }
+  .period-stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .ps-item { text-align: center; }
+  .ps-val { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
+  .ps-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; }
+  .period-empty { color: #475569; font-size: 0.8rem; margin-top: 8px; }
+  @media (max-width: 700px) { .period-stats-row { grid-template-columns: 1fr; } }
+
   /* History graph */
   .graph-container { position: relative; width: 100%; height: 200px; margin: 16px 0; }
   .graph-canvas { width: 100%; height: 100%; }
@@ -382,14 +446,9 @@
             <div class="sg-item"><div class="sg-val" id="rsScore">0</div><div class="sg-label">Score</div></div>
             <div class="sg-item"><div class="sg-val" id="rsAvg">0</div><div class="sg-label">Avg (s)</div></div>
             <div class="sg-item"><div class="sg-val" id="rsFastest">0</div><div class="sg-label">Fastest (s)</div></div>
-            <div class="sg-item"><div class="sg-val" id="rsStreak">0</div><div class="sg-label">Best Streak</div></div>
+            <div class="sg-item"><div class="sg-val" id="rsSlowest" style="font-size:1rem">—</div><div class="sg-label">Slowest</div></div>
             <div class="sg-item"><div class="sg-val" id="rsTime">0</div><div class="sg-label">Time Used</div></div>
-            <div class="sg-item"><div class="sg-val" id="rsRate">0</div><div class="sg-label">Per Min</div></div>
             <div class="sg-item"><div class="sg-val" id="rsStdDev">0</div><div class="sg-label">Std Dev (s)</div></div>
-          </div>
-          <div style="margin-top:20px">
-            <p class="section-label">All Time</p>
-            <div class="stats-grid" id="alltimeStats"></div>
           </div>
         </div>
       </div>
@@ -1239,6 +1298,8 @@ function endGame() {
   const timeUsed = totalTime - timeLeft;
   const avgTime = times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2) : '—';
   const fastest = times.length ? Math.min(...times).toFixed(2) : '—';
+  const slowestEntry = gameHistory.length ? gameHistory.reduce((a, b) => parseFloat(a.time) > parseFloat(b.time) ? a : b) : null;
+  const slowestQ = slowestEntry ? slowestEntry.problem.replace(' = ?', '') : '—';
   const perMin = timeUsed > 0 ? (score / (timeUsed / 60)).toFixed(1) : '—';
   const stdDev = times.length >= 2 ? calcStdDev(times).toFixed(2) : '—';
 
@@ -1246,9 +1307,8 @@ function endGame() {
   document.getElementById('rsScore').textContent = score;
   document.getElementById('rsAvg').textContent = avgTime;
   document.getElementById('rsFastest').textContent = fastest;
-  document.getElementById('rsStreak').textContent = bestStreak;
+  document.getElementById('rsSlowest').textContent = slowestQ;
   document.getElementById('rsTime').textContent = Math.round(timeUsed) + 's';
-  document.getElementById('rsRate').textContent = perMin;
   document.getElementById('rsStdDev').textContent = stdDev;
 
   // Render history with heatmap coloring
@@ -1285,7 +1345,6 @@ function endGame() {
     username: currentUser || 'Guest'
   });
 
-  renderAllTimeInline('alltimeStats');
 }
 
 // --- Input handling ---
@@ -1317,6 +1376,8 @@ document.getElementById('answer').addEventListener('keydown', function (e) {
 
 // --- History page ---
 let histActivePreset = 'Default';
+let histActiveTab = 'sessions';
+let histWinsorized = true;
 
 function renderHistory() {
   const el = document.getElementById('historyCard');
@@ -1324,15 +1385,20 @@ function renderHistory() {
   const presetNames = Object.keys(presets);
   histActivePreset = presetNames.includes(activePresetName) ? activePresetName : presetNames[0];
 
-  const tabs = presetNames.map(name =>
-    `<span class="preset-chip ${name === histActivePreset ? 'active' : ''} ${name === 'Weakness Targeting' ? 'weakness' : ''}" onclick="histActivePreset='${name.replace(/'/g, "\\'")}'; renderHistoryContent();">${name}</span>`
+  const presetTabs = presetNames.map(name =>
+    `<span class="preset-chip ${name === histActivePreset ? 'active' : ''} ${name === 'Weakness Targeting' ? 'weakness' : ''}" onclick="histActivePreset='${name.replace(/'/g, "\\'")}'; ${histActiveTab === 'sessions' ? 'renderHistoryContent()' : 'renderHeatmap()'};">${name}</span>`
   ).join('');
 
   el.innerHTML = `
-    <div class="preset-list" style="margin-bottom:16px">${tabs}</div>
+    <div class="hist-tabs">
+      <button class="hist-tab ${histActiveTab === 'sessions' ? 'active' : ''}" onclick="histActiveTab='sessions'; renderHistory();">Sessions</button>
+      <button class="hist-tab ${histActiveTab === 'heatmap' ? 'active' : ''}" onclick="histActiveTab='heatmap'; renderHistory();">Heatmap</button>
+    </div>
+    ${histActiveTab === 'sessions' ? `<div class="preset-list" style="margin-bottom:16px">${presetTabs}</div>` : ''}
     <div id="histContentContainer"></div>
   `;
-  renderHistoryContent();
+  if (histActiveTab === 'sessions') renderHistoryContent();
+  else renderHeatmap();
 }
 
 function renderHistoryContent() {
@@ -1347,6 +1413,81 @@ function renderHistoryContent() {
     container.innerHTML = `<div class="lb-empty">No games played with "${histActivePreset}" preset yet.</div>`;
     return;
   }
+
+  // Time-period stats
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday
+
+  function parseHistDate(dateStr) {
+    return new Date(dateStr);
+  }
+
+  // Winsorize: clamp values below 10th and above 90th percentile
+  function winsorize(arr) {
+    if (arr.length < 3) return arr;
+    const sorted = arr.slice().sort((a, b) => a - b);
+    const loIdx = Math.max(1, Math.floor(arr.length * 0.1));
+    const hiIdx = Math.min(arr.length - 2, Math.ceil(arr.length * 0.9) - 1);
+    const lo = sorted[loIdx];
+    const hi = sorted[hiIdx];
+    return arr.map(v => Math.max(lo, Math.min(hi, v)));
+  }
+
+  function computePeriodStats(entries) {
+    if (!entries.length) return null;
+    let scores = entries.map(e => e.score);
+    let avgTimes = entries.filter(e => e.avgTime && e.avgTime !== '—').map(e => parseFloat(e.avgTime));
+    if (histWinsorized) {
+      scores = winsorize(scores);
+      avgTimes = winsorize(avgTimes);
+    }
+    const best = Math.max(...entries.map(e => e.score));
+    const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+    const totalSolved = entries.map(e => e.score).reduce((a, b) => a + b, 0);
+    const overallAvg = avgTimes.length ? (avgTimes.reduce((a, b) => a + b, 0) / avgTimes.length).toFixed(2) : '—';
+    return { games: entries.length, best, avg, totalSolved, overallAvg };
+  }
+
+  const allStats = computePeriodStats(h);
+  const weekEntries = h.filter(e => parseHistDate(e.date) >= weekStart);
+  const dayEntries = h.filter(e => parseHistDate(e.date) >= todayStart);
+  const weekStats = computePeriodStats(weekEntries);
+  const dayStats = computePeriodStats(dayEntries);
+
+  function renderStatRow(label, stats) {
+    if (!stats) return `<div class="period-stats-col">
+      <p class="section-label">${label}</p>
+      <div class="period-empty">No games</div>
+    </div>`;
+    return `<div class="period-stats-col">
+      <p class="section-label">${label}</p>
+      <div class="period-stats-grid">
+        <div class="ps-item"><div class="ps-val">${stats.games}</div><div class="ps-label">Games</div></div>
+        <div class="ps-item"><div class="ps-val" style="color:#fbbf24">${stats.best}</div><div class="ps-label">Best</div></div>
+        <div class="ps-item"><div class="ps-val">${stats.avg}</div><div class="ps-label">Avg Score</div></div>
+        <div class="ps-item"><div class="ps-val">${stats.totalSolved}</div><div class="ps-label">Solved</div></div>
+        <div class="ps-item"><div class="ps-val">${stats.overallAvg}</div><div class="ps-label">Avg Time</div></div>
+      </div>
+    </div>`;
+  }
+
+  const periodStatsHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <span class="section-label" style="margin:0">Statistics</span>
+      <div class="bin-switch" onclick="histWinsorized=!histWinsorized; renderHistoryContent();">
+        <span class="bin-switch-label ${histWinsorized ? '' : 'active'}">Raw</span>
+        <div class="bin-switch-track ${histWinsorized ? 'on' : ''}"><div class="bin-switch-thumb"></div></div>
+        <span class="bin-switch-label ${histWinsorized ? 'active' : ''}">Winsorized</span>
+      </div>
+    </div>
+    <div class="period-stats-row">
+      ${renderStatRow('All Time', allStats)}
+      ${renderStatRow('This Week', weekStats)}
+      ${renderStatRow('Today', dayStats)}
+    </div>
+  `;
 
   // Question averages (EMA over last 30)
   const presetQTimes = getQuestionTimes();
@@ -1395,6 +1536,7 @@ function renderHistoryContent() {
   ` : '';
 
   container.innerHTML = `
+    ${periodStatsHTML}
     <div class="graph-container"><canvas class="graph-canvas" id="scoreGraph"></canvas></div>
     <div class="hist-columns">
       <div class="hist-col">
@@ -1427,6 +1569,147 @@ function renderHistoryContent() {
   `;
 
   drawGraph(h);
+}
+
+function renderHeatmap() {
+  const container = document.getElementById('histContentContainer');
+  const presetQTimes = getQuestionTimes();
+  const entries = Object.entries(presetQTimes).filter(([, v]) =>
+    (v.times && v.times.length) || v.total !== undefined
+  );
+
+  if (!entries.length) {
+    container.innerHTML = `<div class="lb-empty">No question data yet. Play some games first!</div>`;
+    return;
+  }
+
+  // First compute global mean/sd from ALL question EMAs (same as Sessions table)
+  const allQEntries = entries.map(([key, v]) => {
+    if (v.times && v.times.length) return { key, avg: calcEMA(v.times) };
+    if (v.total !== undefined) return { key, avg: v.total / v.count };
+    return null;
+  }).filter(Boolean);
+  const allQAvgs = allQEntries.map(q => q.avg);
+  const globalMean = allQAvgs.length ? allQAvgs.reduce((a, b) => a + b, 0) / allQAvgs.length : 0;
+  const globalSD = allQAvgs.length >= 2 ? calcStdDev(allQAvgs) : 1;
+
+  // Merge × and ÷ into unified factor pairs by averaging their EMAs
+  // 3×12=36 and 36÷3=12 both map to fact (3, 12)
+  const factMap = {}; // "min,max" -> { emas: [], counts: [] }
+  let mulDivCount = 0;
+  for (const [key, v] of entries) {
+    const p = parseQuestionKey(key);
+    if (!p || (p.op !== '×' && p.op !== '÷')) continue;
+    mulDivCount++;
+    let fA, fB;
+    if (p.op === '×') {
+      fA = p.a; fB = p.b;
+    } else {
+      fA = Math.min(p.b, p.answer);
+      fB = Math.max(p.b, p.answer);
+    }
+    const ema = (v.times && v.times.length) ? calcEMA(v.times) :
+      (v.total !== undefined ? v.total / v.count : null);
+    if (ema === null) continue;
+    const count = (v.times && v.times.length) ? v.times.length : v.count;
+    const fKey = `${fA},${fB}`;
+    if (!factMap[fKey]) factMap[fKey] = { a: fA, b: fB, emas: [], totalCount: 0 };
+    factMap[fKey].emas.push(ema);
+    factMap[fKey].totalCount += count;
+  }
+
+  const facts = Object.values(factMap).filter(f => f.emas.length > 0);
+  if (!facts.length) {
+    container.innerHTML = `<div class="lb-empty">No multiplication/division data yet.</div>`;
+    return;
+  }
+
+  // Compute merged avg (mean of constituent EMAs) and z-score using global stats
+  for (const f of facts) {
+    f.avg = f.emas.reduce((a, b) => a + b, 0) / f.emas.length;
+    f.count = f.totalCount;
+    f.product = f.a * f.b;
+    f.z = globalSD > 0 ? (f.avg - globalMean) / globalSD : 0;
+  }
+
+  // Transposed grid: cols = small factor (a, 2-12), rows = large factor (b)
+  // Split into two side-by-side tables: rows 2-50 and rows 51-100
+  const colVals = [...new Set(facts.map(f => f.a))].sort((a, b) => a - b);
+  const allRowVals = [...new Set(facts.map(f => f.b))].sort((a, b) => a - b);
+  const lookup = {};
+  for (const f of facts) lookup[`${f.a},${f.b}`] = f;
+
+  const rowsLow = allRowVals.filter(v => v <= 50);
+  const rowsHigh = allRowVals.filter(v => v > 50);
+
+  function buildTable(rowVals, label, dummyRow) {
+    if (!rowVals.length) return `<div class="heatmap-half"><p class="section-label" style="color:#475569">No data for ${label}</p></div>`;
+    const dummyRowHTML = dummyRow ? `<tr>
+      <th class="row-header" style="color:#1e293b">1</th>
+      ${colVals.map(() => '<td style="background:#0f172a;border-color:#0f172a"></td>').join('')}
+    </tr>` : '';
+    return `<div class="heatmap-half">
+      <p class="section-label">${label}</p>
+      <div class="heatmap-wrap">
+        <table class="heatmap-grid">
+          <thead><tr>
+            <th class="row-header">×</th>
+            ${colVals.map(c => `<th>${c}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${dummyRowHTML}
+            ${rowVals.map(r => `<tr>
+              <th class="row-header">${r}</th>
+              ${colVals.map(c => {
+                const f = lookup[`${c},${r}`];
+                if (!f) return '<td class="empty"></td>';
+                // Color by z-score: negative (fast) = cyan, positive (slow) = magenta
+                const clamped = Math.max(-2, Math.min(2, f.z));
+                const t = (clamped + 2) / 4; // 0=cyan, 0.5=neutral, 1=magenta
+                // Cyan: #22d3ee (34,211,238) → Neutral: #334155 (51,65,85) → Magenta: #e879f9 (232,121,249)
+                let red, green, blue;
+                if (t < 0.5) {
+                  const s = t * 2;
+                  red = Math.round(34 + (51 - 34) * s);
+                  green = Math.round(211 + (65 - 211) * s);
+                  blue = Math.round(238 + (85 - 238) * s);
+                } else {
+                  const s = (t - 0.5) * 2;
+                  red = Math.round(51 + (232 - 51) * s);
+                  green = Math.round(65 + (121 - 65) * s);
+                  blue = Math.round(85 + (249 - 85) * s);
+                }
+                const bg = 'rgb(' + red + ',' + green + ',' + blue + ')';
+                const textColor = t < 0.3 || t > 0.7 ? '#0f172a' : '#e2e8f0';
+                const zStr = (f.z >= 0 ? '+' : '') + f.z.toFixed(1);
+                return '<td class="has-data" style="background:' + bg + ';color:' + textColor + '" title="' + c + ' × ' + r + ' = ' + f.product + '\\n' + f.product + ' ÷ ' + c + ' = ' + r + '\\nAvg: ' + f.avg.toFixed(2) + 's\\nz-score: ' + zStr + 'σ\\nSeen: ' + f.count + 'x">' + zStr + '</td>';
+              }).join('')}
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  const html = `
+    <div class="heatmap-stats">
+      ${facts.length} unique factor pairs (from ${mulDivCount} questions)
+    </div>
+    <div class="heatmap-section">
+      <h3>Multiplication &amp; Division <span style="color:#475569; font-weight:400">(× and ÷ merged by fact family)</span></h3>
+      <div class="heatmap-split">
+        ${buildTable(rowsLow, '2 – 50', true)}
+        ${buildTable(rowsHigh, '51 – 100', false)}
+      </div>
+      <div class="heatmap-legend">
+        <span>Fast (−σ)</span>
+        <div class="heatmap-legend-bar"></div>
+        <span>Slow (+σ)</span>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
 }
 
 function drawGraph(data) {
