@@ -15,8 +15,8 @@
     align-items: center;
     min-height: 100vh;
   }
-  .container { text-align: center; width: 100%; max-width: 960px; padding: 20px; }
-  .container .page:not(#historyPage):not(#resultsPage) { max-width: 640px; margin: 0 auto; }
+  .container { text-align: center; width: 100%; max-width: 1100px; padding: 20px; }
+  .container .page:not(#historyPage):not(#resultsPage):not(#leaderboardPage) { max-width: 640px; margin: 0 auto; }
   h1 { font-size: 2.5rem; margin-bottom: 8px; color: #38bdf8; }
   .subtitle { color: #94a3b8; margin-bottom: 30px; }
   .page { display: none; }
@@ -43,7 +43,12 @@
     font-size: 1rem; padding: 8px 12px; border-radius: 8px; outline: none;
   }
   select:focus, .time-input:focus { border-color: #38bdf8; }
-  .time-input { width: 110px; text-align: center; }
+  .time-input { width: 110px; text-align: center; -moz-appearance: textfield; }
+  .time-input::-webkit-outer-spin-button,
+  .time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .range-input { -moz-appearance: textfield; }
+  .range-input::-webkit-outer-spin-button,
+  .range-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
   /* Presets */
   .presets { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
@@ -108,6 +113,16 @@
   .btn-secondary:hover { background: #64748b; }
   .btn-row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
 
+  /* Leaderboard layout */
+  .lb-layout { display: flex; gap: 20px; align-items: flex-start; }
+  .lb-main { flex: 1; min-width: 0; }
+  .lb-sidebar { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: sticky; top: 20px; }
+  .lb-sidebar .btn, .lb-sidebar .btn-secondary { width: 120px; text-align: center; padding-left: 10px; padding-right: 10px; }
+  @media (max-width: 600px) {
+    .lb-layout { flex-direction: column; }
+    .lb-sidebar { flex-direction: row; justify-content: center; position: static; }
+  }
+
   /* Game */
   .timer-bar {
     background: #1e293b; border-radius: 99px; height: 12px; margin-bottom: 30px; overflow: hidden;
@@ -152,12 +167,12 @@
   }
 
   /* Leaderboard */
-  .lb-table { width: 100%; border-collapse: collapse; margin-top: 12px; text-align: left; }
+  .lb-table { width: auto; border-collapse: collapse; margin-top: 12px; text-align: left; }
   .lb-table th {
     color: #64748b; font-size: 0.75rem; text-transform: uppercase;
-    padding: 8px 6px; border-bottom: 2px solid #334155;
+    padding: 6px 8px; border-bottom: 2px solid #334155; white-space: nowrap;
   }
-  .lb-table td { padding: 10px 6px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+  .lb-table td { padding: 6px 8px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; white-space: nowrap; }
   .lb-table tr.gold td { color: #fbbf24; }
   .lb-table tr.silver td { color: #94a3b8; }
   .lb-table tr.bronze td { color: #b45309; }
@@ -228,7 +243,7 @@
 
   /* Period stats */
   .period-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .period-stats-col { background: #1e293b; border-radius: 10px; padding: 12px; }
+  .period-stats-col { background: #1e293b; border-radius: 10px; padding: 12px; border: 1px solid #334155; }
   .period-stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
   .ps-item { text-align: center; }
   .ps-val { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
@@ -470,22 +485,30 @@
   <!-- LEADERBOARD PAGE -->
   <div class="page" id="leaderboardPage">
     <h1 style="font-size:1.8rem; margin-bottom:20px;">Leaderboard</h1>
-    <div class="card" id="leaderboardCard"></div>
-    <div class="btn-row">
-      <button class="btn btn-small" onclick="startGame()">Play</button>
-      <button class="btn-secondary btn-small" onclick="showPage('historyPage'); renderHistory();">History</button>
-      <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+    <div class="lb-layout">
+      <div class="lb-main">
+        <div class="card" id="leaderboardCard"></div>
+      </div>
+      <div class="lb-sidebar">
+        <button class="btn btn-small" onclick="startGame()">Play</button>
+        <button class="btn-secondary btn-small" onclick="showPage('historyPage'); renderHistory();">History</button>
+        <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+      </div>
     </div>
   </div>
 
   <!-- HISTORY PAGE -->
   <div class="page" id="historyPage">
     <h1 style="font-size:1.8rem; margin-bottom:20px;">History</h1>
-    <div class="card" id="historyCard"></div>
-    <div class="btn-row">
-      <button class="btn btn-small" onclick="startGame()">Play</button>
-      <button class="btn-secondary btn-small" onclick="showPage('leaderboardPage'); renderLeaderboard();">Leaderboard</button>
-      <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+    <div class="lb-layout">
+      <div class="lb-main">
+        <div class="card" id="historyCard"></div>
+      </div>
+      <div class="lb-sidebar">
+        <button class="btn btn-small" onclick="startGame()">Play</button>
+        <button class="btn-secondary btn-small" onclick="showPage('leaderboardPage'); renderLeaderboard();">Leaderboard</button>
+        <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
+      </div>
     </div>
   </div>
 
@@ -1104,17 +1127,16 @@ function renderLeaderboardTable() {
   container.innerHTML = `
     <table class="lb-table">
       <thead>
-        <tr><th class="lb-rank">#</th><th>Player</th><th>Date</th><th>Score</th><th>Time</th><th>Per Min</th><th>Per Sec</th></tr>
+        <tr><th class="lb-rank">#</th><th>Player</th><th>Date</th><th>Score</th><th>Time</th><th>Per Sec</th></tr>
       </thead>
       <tbody>
         ${sorted.map((e, i) => `
           <tr class="${rankClass(i)}">
             <td class="lb-rank">${i + 1}</td>
             <td>${e.username || 'Guest'}</td>
-            <td>${e.date}</td>
+            <td>${(e.date || '').split(' ')[0]}</td>
             <td class="lb-score">${e.score}</td>
             <td>${e.timeUsed || e.duration}s</td>
-            <td>${e.perMin || '—'}</td>
             <td>${e.timeUsed ? (e.score / e.timeUsed).toFixed(2) : '—'}</td>
           </tr>
         `).join('')}
@@ -1331,7 +1353,7 @@ function endGame() {
 
   // Save to localStorage (per-preset)
   const now = new Date();
-  const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString();
   saveScore({
     date: dateStr,
     score: score,
@@ -1365,7 +1387,6 @@ document.getElementById('answer').addEventListener('input', function () {
     times.push(parseFloat(elapsed));
     gameHistory.push({ problem: prob, time: elapsed, qkey: qkey, a: currentA, b: currentB, op: currentOp });
     document.getElementById('scoreDisp').textContent = score;
-    this.className = 'correct';
     showProblem();
   }
 });
@@ -1550,7 +1571,7 @@ function renderHistoryContent() {
               ${h.slice().reverse().map((e, i) => `
                 <tr>
                   <td>${h.length - i}</td>
-                  <td>${e.date}</td>
+                  <td>${(e.date || '').split(' ')[0]}</td>
                   <td class="ht-score">${e.score}</td>
                   <td>${e.timeUsed || e.duration}s</td>
                   <td>${e.perMin || '—'}</td>
@@ -1692,11 +1713,7 @@ function renderHeatmap() {
   }
 
   const html = `
-    <div class="heatmap-stats">
-      ${facts.length} unique factor pairs (from ${mulDivCount} questions)
-    </div>
     <div class="heatmap-section">
-      <h3>Multiplication &amp; Division <span style="color:#475569; font-weight:400">(× and ÷ merged by fact family)</span></h3>
       <div class="heatmap-split">
         ${buildTable(rowsLow, '2 – 50', true)}
         ${buildTable(rowsHigh, '51 – 100', false)}
@@ -1706,6 +1723,10 @@ function renderHeatmap() {
         <div class="heatmap-legend-bar"></div>
         <span>Slow (+σ)</span>
       </div>
+      <div class="heatmap-stats">
+        ${facts.length} unique factor pairs (from ${mulDivCount} questions)
+      </div>
+      <h3 style="margin-top:8px;">Multiplication &amp; Division <span style="color:#475569; font-weight:400">(× and ÷ merged by fact family)</span></h3>
     </div>
   `;
 
@@ -1845,7 +1866,7 @@ function saveOnExit() {
     saveQuestionTime(h.qkey, parseFloat(h.time), h.a, h.b, h.op);
   });
   const now = new Date();
-  const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString();
   saveScore({
     date: dateStr,
     score: score,
