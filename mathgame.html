@@ -221,6 +221,15 @@
   }
   .heatmap-grid td.empty { background: #1e293b; }
   .heatmap-grid td.has-data:hover { outline: 2px solid #e2e8f0; outline-offset: -1px; z-index: 2; }
+  .heatmap-grid td.has-data { position: relative; }
+  .heatmap-grid td.has-data .hm-tooltip {
+    display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 6px 10px;
+    white-space: nowrap; z-index: 10; pointer-events: none; font-size: 0.75rem; color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .heatmap-grid td.has-data .hm-tooltip .hm-answer { font-size: 0.95rem; font-weight: 700; color: #38bdf8; }
+  .heatmap-grid td.has-data:hover .hm-tooltip { display: block; }
   .heatmap-legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.75rem; color: #64748b; }
   .heatmap-legend-bar {
     width: 120px; height: 12px; border-radius: 4px;
@@ -390,6 +399,7 @@
           <input type="checkbox" id="rememberMe" style="accent-color:#38bdf8;"> Remember me on this computer
         </label>
         <button class="forgot-link" id="forgotBtn" onclick="showForgotPassword()">Forgot password?</button>
+        <button class="forgot-link" id="forgotUserBtn" onclick="showForgotUsername()">Forgot username?</button>
         <div class="auth-error" id="authError"></div>
         <div class="auth-success" id="authSuccess"></div>
         <button class="btn btn-small" style="width:100%" id="authSubmitBtn" onclick="authSubmit()">Log In</button>
@@ -566,6 +576,17 @@
       <div class="auth-success" id="acctSuccess"></div>
       <button class="btn btn-small" style="width:100%" onclick="saveAccount()">Save Changes</button>
     </div>
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid #334155;">
+      <h3 style="font-size:0.95rem; color:#94a3b8; margin-bottom:10px;">Transfer Account</h3>
+      <p style="color:#64748b; font-size:0.8rem; margin-bottom:12px;">Export your account data to use on another device, or import data from another device.</p>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-secondary btn-small" style="flex:1" onclick="exportAccountData()">Export Data</button>
+        <button class="btn-secondary btn-small" style="flex:1" onclick="document.getElementById('importFileInput').click()">Import Data</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importAccountData(event)">
+      </div>
+      <div class="auth-error" id="transferError" style="margin-top:8px;"></div>
+      <div class="auth-success" id="transferSuccess" style="margin-top:8px;"></div>
+    </div>
     <div class="btn-row" style="margin-top:16px;">
       <button class="btn-secondary btn-small" onclick="showPage('menuPage')">Back</button>
     </div>
@@ -695,6 +716,8 @@ function showAuthTab(mode) {
   document.getElementById('authPasswordConfirm').style.display = mode === 'register' ? '' : 'none';
   document.getElementById('authPassword').style.display = '';
   document.getElementById('forgotBtn').style.display = mode === 'login' ? '' : 'none';
+  document.getElementById('forgotUserBtn').style.display = mode === 'login' ? '' : 'none';
+  document.getElementById('authUsername').style.display = '';
   document.getElementById('rememberLabel').style.display = mode === 'login' ? 'flex' : 'none';
   document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Log In' : 'Register';
   document.getElementById('authError').textContent = '';
@@ -702,14 +725,30 @@ function showAuthTab(mode) {
 }
 
 function showForgotPassword() {
-  forgotMode = true;
+  forgotMode = 'password';
   document.getElementById('authPassword').style.display = 'none';
   document.getElementById('authPasswordConfirm').style.display = 'none';
   document.getElementById('authEmail').style.display = '';
   document.getElementById('authEmail').placeholder = 'Email used at registration';
   document.getElementById('forgotBtn').style.display = 'none';
+  document.getElementById('forgotUserBtn').style.display = 'none';
   document.getElementById('rememberLabel').style.display = 'none';
   document.getElementById('authSubmitBtn').textContent = 'Recover Password';
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authSuccess').textContent = '';
+}
+
+function showForgotUsername() {
+  forgotMode = 'username';
+  document.getElementById('authUsername').style.display = 'none';
+  document.getElementById('authPassword').style.display = 'none';
+  document.getElementById('authPasswordConfirm').style.display = 'none';
+  document.getElementById('authEmail').style.display = '';
+  document.getElementById('authEmail').placeholder = 'Email used at registration';
+  document.getElementById('forgotBtn').style.display = 'none';
+  document.getElementById('forgotUserBtn').style.display = 'none';
+  document.getElementById('rememberLabel').style.display = 'none';
+  document.getElementById('authSubmitBtn').textContent = 'Recover Username';
   document.getElementById('authError').textContent = '';
   document.getElementById('authSuccess').textContent = '';
 }
@@ -723,12 +762,21 @@ async function authSubmit() {
   errorEl.textContent = '';
   successEl.textContent = '';
 
-  if (!username) { errorEl.textContent = 'Username is required.'; return; }
-
   const profiles = getProfiles();
 
+  // Forgot username flow
+  if (forgotMode === 'username') {
+    if (!email) { errorEl.textContent = 'Email is required.'; return; }
+    const found = Object.keys(profiles).filter(u => profiles[u].email === email);
+    if (!found.length) { errorEl.textContent = 'No account found with that email.'; return; }
+    successEl.textContent = `Username${found.length > 1 ? 's' : ''}: ${found.join(', ')}`;
+    return;
+  }
+
+  if (!username) { errorEl.textContent = 'Username is required.'; return; }
+
   // Forgot password flow
-  if (forgotMode) {
+  if (forgotMode === 'password') {
     if (!profiles[username]) { errorEl.textContent = 'User not found.'; return; }
     if (!email) { errorEl.textContent = 'Email is required.'; return; }
     if (profiles[username].email !== email) { errorEl.textContent = 'Email does not match.'; return; }
@@ -870,6 +918,86 @@ async function saveAccount() {
   successEl.textContent = 'Account updated successfully.';
   document.getElementById('acctCurrentPassword').value = '';
   document.getElementById('acctNewPassword').value = '';
+}
+
+// --- Export / Import Account Data ---
+function exportAccountData() {
+  if (!currentUser) return;
+  const profiles = getProfiles();
+  const profile = profiles[currentUser];
+  const data = {
+    version: 1,
+    username: currentUser,
+    profile: profile,
+    histories: localStorage.getItem(userStorageKey('histories')) || '{}',
+    qtimes: localStorage.getItem(userStorageKey('qtimes')) || '{}',
+    leaderboard: localStorage.getItem('zmx_global_leaderboard') || '{}'
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `zetamacx_${currentUser}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('transferSuccess').textContent = 'Account data exported.';
+  document.getElementById('transferError').textContent = '';
+}
+
+function importAccountData(event) {
+  const errorEl = document.getElementById('transferError');
+  const successEl = document.getElementById('transferSuccess');
+  errorEl.textContent = '';
+  successEl.textContent = '';
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.username || !data.profile || !data.profile.hash) {
+        errorEl.textContent = 'Invalid account data file.';
+        return;
+      }
+      // Save profile
+      const profiles = getProfiles();
+      if (profiles[data.username] && data.username !== currentUser) {
+        errorEl.textContent = `Username "${data.username}" already exists on this device. Log in to that account or change the username first.`;
+        return;
+      }
+      profiles[data.username] = data.profile;
+      saveProfiles(profiles);
+      // Save user data
+      if (data.histories) localStorage.setItem(`zmx_u_${data.username}_histories`, data.histories);
+      if (data.qtimes) localStorage.setItem(`zmx_u_${data.username}_qtimes`, data.qtimes);
+      // Merge leaderboard data
+      if (data.leaderboard) {
+        try {
+          const imported = JSON.parse(data.leaderboard);
+          const existing = JSON.parse(localStorage.getItem('zmx_global_leaderboard') || '{}');
+          for (const preset of Object.keys(imported)) {
+            if (!existing[preset]) existing[preset] = [];
+            const existingKeys = new Set(existing[preset].map(e => `${e.username}_${e.date}_${e.score}`));
+            for (const entry of imported[preset]) {
+              const key = `${entry.username}_${entry.date}_${entry.score}`;
+              if (!existingKeys.has(key)) existing[preset].push(entry);
+            }
+          }
+          localStorage.setItem('zmx_global_leaderboard', JSON.stringify(existing));
+        } catch (e) { /* ignore malformed leaderboard */ }
+      }
+      // Log in as imported user
+      currentUser = data.username;
+      localStorage.setItem('zmx_remembered', currentUser);
+      updateTopBar();
+      showAccountPage();
+      successEl.textContent = `Account "${data.username}" imported successfully. You are now logged in.`;
+    } catch (err) {
+      errorEl.textContent = 'Failed to read file: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // --- Show/Hide Expected Score ---
@@ -1994,7 +2122,7 @@ function renderHeatmap() {
                 const bg = 'rgb(' + red + ',' + green + ',' + blue + ')';
                 const textColor = t < 0.3 || t > 0.7 ? '#0f172a' : '#e2e8f0';
                 const zStr = (f.z >= 0 ? '+' : '') + f.z.toFixed(1);
-                return '<td class="has-data" style="background:' + bg + ';color:' + textColor + '" title="' + c + ' × ' + r + ' = ' + f.product + '\\n' + f.product + ' ÷ ' + c + ' = ' + r + '\\nAvg: ' + f.avg.toFixed(2) + 's\\nz-score: ' + zStr + 'σ\\nSeen: ' + f.count + 'x">' + zStr + '</td>';
+                return '<td class="has-data" style="background:' + bg + ';color:' + textColor + '">' + zStr + '<div class="hm-tooltip"><span class="hm-answer">' + c + ' × ' + r + ' = ' + f.product + '</span><br>' + f.product + ' ÷ ' + c + ' = ' + r + '<br>Avg: ' + f.avg.toFixed(2) + 's · z: ' + zStr + 'σ · ' + f.count + 'x</div></td>';
               }).join('')}
             </tr>`).join('')}
           </tbody>
@@ -2345,6 +2473,9 @@ document.addEventListener('keydown', function(e) {
   if (matchesKeybind(e, keybinds.startEnd)) {
     // Allow Tab in inputs only if it's not the start/end key
     if (inInput && keybinds.startEnd.key.toLowerCase() !== 'tab') return;
+    // Don't start/end game when auth dropdown is open
+    const authDropdown = document.getElementById('authDropdown');
+    if (authDropdown && !authDropdown.classList.contains('hidden')) return;
     e.preventDefault();
     const gamePage = document.getElementById('gamePage');
     if (gamePage.classList.contains('active')) {
